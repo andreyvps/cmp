@@ -2380,6 +2380,7 @@ bool cmp_object_is_short(cmp_object_t *obj) {
 
 bool cmp_object_is_int(cmp_object_t *obj) {
   switch (obj->type) {
+    case CMP_TYPE_POSITIVE_FIXNUM:	  
     case CMP_TYPE_NEGATIVE_FIXNUM:
     case CMP_TYPE_SINT8:
     case CMP_TYPE_SINT16:
@@ -2392,6 +2393,7 @@ bool cmp_object_is_int(cmp_object_t *obj) {
 
 bool cmp_object_is_long(cmp_object_t *obj) {
   switch (obj->type) {
+    case CMP_TYPE_POSITIVE_FIXNUM:
     case CMP_TYPE_NEGATIVE_FIXNUM:
     case CMP_TYPE_SINT8:
     case CMP_TYPE_SINT16:
