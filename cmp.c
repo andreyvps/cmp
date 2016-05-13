@@ -173,6 +173,43 @@ static uint64_t be64(uint64_t x) {
   return x;
 }
 
+static void encode_befloat(float x, char *ret) {
+    char *b = (char *)&x;
+
+    if (!is_bigendian()) {
+        ret[0] = b[3];
+        ret[1] = b[2];
+        ret[2] = b[1];
+        ret[3] = b[0];
+    }
+    else {
+        ret[0] = b[0];
+        ret[1] = b[1];
+        ret[2] = b[2];
+        ret[3] = b[3];
+    }
+}
+
+static float decode_befloat(char *x) {
+    char b[4];
+
+    if (!is_bigendian()) {
+        b[0] = x[3];
+        b[1] = x[2];
+        b[2] = x[1];
+        b[3] = x[0];
+    }
+    else {
+        b[0] = x[0];
+        b[1] = x[1];
+        b[2] = x[2];
+        b[3] = x[3];
+    }
+    
+    float* ret = (float*)b;
+    return *ret;
+}
+
 static float befloat(float x) {
   char *b = (char *)&x;
 
@@ -401,9 +438,10 @@ bool cmp_write_float(cmp_ctx_t *ctx, float f) {
   if (!write_type_marker(ctx, FLOAT_MARKER))
     return false;
 
-  f = befloat(f);
+  char encoded[sizeof(float)];
+  encode_befloat(f, encoded);
 
-  return ctx->write(ctx, &f, sizeof(float));
+  return ctx->write(ctx, encoded, sizeof(float));
 }
 
 bool cmp_write_double(cmp_ctx_t *ctx, double d) {
@@ -2134,11 +2172,12 @@ bool cmp_read_object(cmp_ctx_t *ctx, cmp_object_t *obj) {
   }
   else if (type_marker == FLOAT_MARKER) {
     obj->type = CMP_TYPE_FLOAT;
-    if (!ctx->read(ctx, &obj->as.flt, sizeof(float))) {
+    char encoded[4];
+    if (!ctx->read(ctx, encoded, sizeof(float))) {
       ctx->error = DATA_READING_ERROR;
       return false;
     }
-    obj->as.flt = befloat(obj->as.flt);
+    obj->as.flt = decode_befloat(encoded);
   }
   else if (type_marker == DOUBLE_MARKER) {
     obj->type = CMP_TYPE_DOUBLE;
